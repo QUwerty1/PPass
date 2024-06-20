@@ -7,5 +7,6 @@ include_directories(.)
 
 add_executable(PPass
         main.cpp
-        fileworker.h
-        xtea.h)
+        xtea.h
+        passdata.h
+        fileworker.h)
