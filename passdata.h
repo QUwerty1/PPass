@@ -9,11 +9,14 @@
 
 using namespace std;
 
+// Делает число символов в строке кратным 64
 string normalizeString(string p) {
     return p + string(64 - p.size(), '/');
 }
 
-vector<uint32_t> stringToInt(string &s) {
+// преобразует строку в вектор беззнаковых 32-битных чисел
+vector<uint32_t> stringToVector(string s) {
+    s = normalizeString(s);
     vector<uint32_t> data (s.size() >> 2);
     uint32_t *nPtr = reinterpret_cast<uint32_t*>(&*s.begin());
 
@@ -24,7 +27,8 @@ vector<uint32_t> stringToInt(string &s) {
     return data;
 }
 
-string intToString(const vector<uint32_t> &data) {
+// преобразует вектор 32-битных беззнаковых чисел в строку
+string vectorToString(const vector<uint32_t> &data) {
     string s;
     char* cPtr = (char*)(&*data.begin());
 
@@ -32,6 +36,14 @@ string intToString(const vector<uint32_t> &data) {
         s += *cPtr;
         cPtr++;
     }
+    cPtr--;
+    int cnt = 0;
+
+    while (*cPtr == '/') {
+        cPtr--;
+        cnt++;
+    }
+    s = s.substr(0, s.size() - cnt);
 
     return s;
 }
