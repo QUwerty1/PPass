@@ -1,7 +1,6 @@
 //
 // Created by User on 19.06.2024.
 //
-
 #ifndef FILEWORKER_H
 #define FILEWORKER_H
 
@@ -9,9 +8,11 @@
 #include <string>
 #include <cstdint>
 #include <vector>
+#include "passdata.h"
+#include <iostream>
+#include "xtea.h"
 
 using namespace std;
-
 void input_file() {
     setlocale(LC_ALL, "Russian");
 
@@ -37,7 +38,7 @@ void input_file() {
         // Читаем данные в вектор
         if (fin.read(reinterpret_cast<char *>(buffer.data()), fileSize)) {
             // Обрабатываем данные
-            string str = vectotToString(buffer);
+            string str = vectorToString(buffer);
 
             // Перевод в строковый вектор
             vector<string> text(fileSize / sizeof(string));
@@ -64,6 +65,22 @@ void input_file() {
         void input_file();
     }
     fin.close();
+}
+
+void output_file(const vector<string> &passData, const vector<uint32_t> &key) {
+    string keyStr = vectorToString(key);
+    string dataStr = keyStr + '\n';
+    for (const string &i: passData) {
+        dataStr += i + '\n';
+    }
+    vector<uint32_t> data = stringToVector(dataStr);
+    xtea_encrypt(data, key);
+    ofstream file("notPasswords.bin", ios::out);
+
+    char* cPtr = reinterpret_cast<char*>(&*data.begin());
+    file.write(cPtr, (uint32_t)data.size() * 4);
+
+    file.close();
 }
 
 #endif //FILEWORKER_H
