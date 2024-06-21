@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include "fileworker.h";
 using namespace std;
 
 int main() {

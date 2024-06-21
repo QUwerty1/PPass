@@ -1,6 +1,10 @@
 //
 // Created by User on 19.06.2024.
 //
+
+#ifndef FILEWORKER_H
+#define FILEWORKER_H
+
 #include <fstream>
 #include <string>
 #include <cstdint>
@@ -8,47 +12,58 @@
 
 using namespace std;
 
-#ifndef FILEWORKER_H
-#define FILEWORKER_H
+void input_file() {
+    setlocale(LC_ALL, "Russian");
 
-void input_file (string pass) {
-    //если файла нет, то создать его
-    if(ifstream fin(ppas.txt, app)) {
-        fin >> pass;
-    }
-    else {
-        ofstream fout;
-        fout.open(ppas.txt);
-        fout.close(ppas.txt);
-        void input_file (pass);
-    }
+    // Открываем файл в бинарном режиме
+    string filename = "notPasswords.bin";
+    ifstream fin(filename, ios::binary);
 
-}
-void output_file () {
-    ifstream file("testo.txt", ios::in);
-    string s = string(48, '\0');
-    getline(file, s);
-    file.close();
-    cout << s << '\n';
+    if (fin) {
+        // Определяем размер файла
+        fin.seekg(0, ios::end);
+        std::streampos fileSize = fin.tellg();
+        fin.seekg(0, ios::beg);
 
-    vector<uint32_t> text(s.size() >> 2, 0);
-    char *num = &*s.begin();
-
-    for (int i = 0; i < s.size() >> 2; ++i) {
-        text[i] = *num;
-        for (int j = 0; j < 3; ++j) {
-            num++;
-            text[i] = (text[i] << 1) + *num;
+        // Проверяем, что размер файла кратен размеру uint32_t
+        if (fileSize % sizeof(uint32_t) != 0) {
+            cerr << "Размер файла не кратен" << endl;
+            return;
         }
-        num++;
-    }
 
-    xtea_decrypt(text, vector<uint32_t >{1, 2, 3, 4});
+        // Создаем вектор нужного размера
+        vector<uint32_t> buffer(fileSize / sizeof(uint32_t));
 
-    for (uint32_t el: text) {
-        cout << el << ' ';
+        // Читаем данные в вектор
+        if (fin.read(reinterpret_cast<char *>(buffer.data()), fileSize)) {
+            // Обрабатываем данные
+            string str = vectotToString(buffer);
+
+            // Перевод в строковый вектор
+            vector<string> text(fileSize / sizeof(string));
+            string line;
+            for (int i = 0, j = 0, k = 0; str[i] != '\0'; i++, j++)  {
+                if(str[i] != '\n') {
+                    line[j] = str[i];
+                }
+                else {
+                    j = 0;
+                    text[k] = line;
+                    line = "";
+                    k++;
+                }
+            }
+        } else {
+            cerr << "Ошибка при чтении файла" << endl;
+        }
+    } else {
+        //создание файла
+        ofstream fout;
+        fout.open(filename);
+        fout.close();
+        void input_file();
     }
-    cout << '\n' << text.size() << '\n' << s.size();
+    fin.close();
 }
 
 #endif //FILEWORKER_H
