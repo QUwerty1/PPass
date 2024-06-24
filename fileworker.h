@@ -14,7 +14,7 @@
 
 using namespace std;
 
-void openFile(const vector<uint32_t> &key, vector<PassData> &passes) {
+void openFile(string &key, vector<PassData> &passes) {
 
     // Открываем файл в бинарном режиме
     string filename = "notPasswords.bin";
@@ -40,48 +40,57 @@ void openFile(const vector<uint32_t> &key, vector<PassData> &passes) {
             // Обрабатываем данные
             string str = vectorToString(buffer);
 
-            string fileKey = "";
-            uint32_t size = 0;
-
+            //перевод строки в вектор структур
             string line;
-            for (int i = 0, k = -2; str[i] != '\0'; i++)  {
+            //прогоняем строчку
+            for (int i = 0, k = -2, j = 0; str[i] != '\0'; i++)  {
                 if(str[i] != '\n' && str[i] != ';') {
                     line += str[i];
                 }
+                //считывание слов
                 else if (str[i] != ';'){
                     if(k == -2) {
-                        fileKey = line;
-                        k++;
-                        line = "";
                         //проверка ключа
+                        if (key != line) {
+                            cout << "Неверный ключ\n";
+                            return;
+                        }
+                        line = "";
+                        k++;
                     }
                     if(k == -1) {
-                        passes.resize(stoi(line) + 1);
-                        passes[1].pass = line;
+                        passes.resize(stoi(line));
                         line = "";
                         k++;
                     }
+                    //переход на новую подстроку
                     else {
                         if(k == 0) {
-                            passes[2].login = line;
+                            passes[j].login = line;
                             line = "";
+                            //сдвиг счётчика слов в подстроке
                             k++;
                         }
                         else if(k == 1) {
-                            passes[2].pass = line;
+                            passes[j].pass = line;
                             line = "";
+                            //сдвиг счётчика слов в подстроке
                             k++;
                         }
                         else if(k == 2){
-                            passes[2].service = line;
+                            passes[j].service = line;
                             line = "";
+                            //сдвиг счётчика слов в подстроке
                             k++;
                         }
                         else{
                             int toInt  = stoi(line);
-                            passes[2].duration = static_cast<uint64_t>(toInt);
+                            passes[j].duration = static_cast<uint64_t>(toInt);
                             line = "";
+                            //обнуление счётчика слов в подстроке
                             k = 0;
+                            //сдвиг на следующий элемент вектора
+                            j++;
                         }
                     }
                 }
@@ -90,11 +99,9 @@ void openFile(const vector<uint32_t> &key, vector<PassData> &passes) {
             cerr << "Ошибка при чтении файла" << endl;
         }
     } else {
-        //создание файла
-        ofstream fout;
-        fout.open(filename);
-        fout.close();
-        openFile(key, passes);
+        //возвращаем пустой массив
+        cerr << "Ошибка при чтении файла" << endl;
+        return;
     }
     fin.close();
 }
