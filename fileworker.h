@@ -13,8 +13,8 @@
 #include "xtea.h"
 
 using namespace std;
-void openFile() {
-    setlocale(LC_ALL, "Russian");
+
+void openFile(const vector<uint32_t> &key, vector<PassData> &passes) {
 
     // Открываем файл в бинарном режиме
     string filename = "notPasswords.bin";
@@ -40,52 +40,50 @@ void openFile() {
             // Обрабатываем данные
             string str = vectorToString(buffer);
 
-            // Перевод вектор структур
-            vector<PassData> PassDataVec(1);
+            string fileKey = "";
+            uint32_t size = 0;
+
             string line;
             for (int i = 0, k = -2; str[i] != '\0'; i++)  {
-                if(str[i] != '\n' || str[i] != ';') {
+                if(str[i] != '\n' && str[i] != ';') {
                     line += str[i];
                 }
                 else if (str[i] != ';'){
                     if(k == -2) {
-                        PassDataVec[1].login = line;
+                        fileKey = line;
                         k++;
                         line = "";
                         //проверка ключа
                     }
                     if(k == -1) {
-                        PassDataVec.resize(stoi(line) + 1);
-                        PassDataVec[1].pass = line;
+                        passes.resize(stoi(line) + 1);
+                        passes[1].pass = line;
                         line = "";
                         k++;
                     }
                     else {
                         if(k == 0) {
-                            PassDataVec[2].login = line;
+                            passes[2].login = line;
                             line = "";
                             k++;
                         }
                         else if(k == 1) {
-                            PassDataVec[2].pass = line;
+                            passes[2].pass = line;
                             line = "";
                             k++;
                         }
                         else if(k == 2){
-                            PassDataVec[2].service = line;
+                            passes[2].service = line;
                             line = "";
                             k++;
                         }
                         else{
                             int toInt  = stoi(line);
-                            PassDataVec[2].duration = static_cast<uint64_t>(toInt);
+                            passes[2].duration = static_cast<uint64_t>(toInt);
                             line = "";
                             k = 0;
                         }
                     }
-                }
-                else {
-                    line = "";
                 }
             }
         } else {
@@ -96,23 +94,26 @@ void openFile() {
         ofstream fout;
         fout.open(filename);
         fout.close();
-        void input_file();
+        openFile(key, passes);
     }
     fin.close();
 }
 
-void saveFile(const vector<string> &passData, const vector<uint32_t> &key) {
+// сохраняет файл
+void saveFile(const vector<PassData> &passes, const vector<uint32_t> &key) {
     string keyStr = vectorToString(key);
-    string dataStr = keyStr + '\n';
-    for (const string &i: passData) {
-        dataStr += i + '\n';
+    string dataStr = keyStr + ';' + to_string(passes.size()) + '\n';
+    for (const PassData &pass: passes) {
+        dataStr += pass.login + ';' + pass.pass + ';' + pass.service + ';'
+                   + to_string(pass.timestamp) + to_string(pass.duration) + '\n';
     }
-    vector<uint32_t> data = stringToVector(dataStr);
+    vector<uint32_t> data;
+    stringToVector(dataStr, data);
     xtea_encrypt(data, key);
     ofstream file("notPasswords.bin", ios::out);
 
-    char* cPtr = reinterpret_cast<char*>(&*data.begin());
-    file.write(cPtr, (uint32_t)data.size() * 4);
+    char *cPtr = reinterpret_cast<char *>(&*data.begin());
+    file.write(cPtr, (uint32_t) data.size() * 4);
 
     file.close();
 }
