@@ -13,7 +13,7 @@
 #include "xtea.h"
 
 using namespace std;
-void input_file() {
+void openFile() {
     setlocale(LC_ALL, "Russian");
 
     // Открываем файл в бинарном режиме
@@ -40,18 +40,52 @@ void input_file() {
             // Обрабатываем данные
             string str = vectorToString(buffer);
 
-            // Перевод в строковый вектор
-            vector<string> text(fileSize / sizeof(string));
+            // Перевод вектор структур
+            vector<PassData> PassDataVec(1);
             string line;
-            for (int i = 0, j = 0, k = 0; str[i] != '\0'; i++, j++)  {
-                if(str[i] != '\n') {
-                    line[j] = str[i];
+            for (int i = 0, k = -2; str[i] != '\0'; i++)  {
+                if(str[i] != '\n' || str[i] != ';') {
+                    line += str[i];
+                }
+                else if (str[i] != ';'){
+                    if(k == -2) {
+                        PassDataVec[1].login = line;
+                        k++;
+                        line = "";
+                        //проверка ключа
+                    }
+                    if(k == -1) {
+                        PassDataVec.resize(stoi(line) + 1);
+                        PassDataVec[1].pass = line;
+                        line = "";
+                        k++;
+                    }
+                    else {
+                        if(k == 0) {
+                            PassDataVec[2].login = line;
+                            line = "";
+                            k++;
+                        }
+                        else if(k == 1) {
+                            PassDataVec[2].pass = line;
+                            line = "";
+                            k++;
+                        }
+                        else if(k == 2){
+                            PassDataVec[2].service = line;
+                            line = "";
+                            k++;
+                        }
+                        else{
+                            int toInt  = stoi(line);
+                            PassDataVec[2].duration = static_cast<uint64_t>(toInt);
+                            line = "";
+                            k = 0;
+                        }
+                    }
                 }
                 else {
-                    j = 0;
-                    text[k] = line;
                     line = "";
-                    k++;
                 }
             }
         } else {
@@ -67,7 +101,7 @@ void input_file() {
     fin.close();
 }
 
-void output_file(const vector<string> &passData, const vector<uint32_t> &key) {
+void saveFile(const vector<string> &passData, const vector<uint32_t> &key) {
     string keyStr = vectorToString(key);
     string dataStr = keyStr + '\n';
     for (const string &i: passData) {

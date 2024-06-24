@@ -20,7 +20,7 @@ struct PassData {
 void PassesToString(const vector<PassData> &passes, string &text) {
     text = "";
     for (const PassData &pass: passes) {
-        text += pass.login
+        text += pass.login;
     }
 }
 
