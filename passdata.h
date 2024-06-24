@@ -9,6 +9,21 @@
 
 using namespace std;
 
+struct PassData {
+    string login;
+    string pass;
+    string service;
+    uint64_t timestamp;
+    uint64_t duration;
+};
+
+void PassesToString(const vector<PassData> &passes, string &text) {
+    text = "";
+    for (const PassData &pass: passes) {
+        text += pass.login
+    }
+}
+
 // Делает число символов в строке кратным 64
 string normalizeString(string p) {
     return p + string(64 - p.size(), '/');
