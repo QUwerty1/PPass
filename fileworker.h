@@ -5,16 +5,12 @@
 #define FILEWORKER_H
 
 #include <fstream>
-#include <string>
-#include <cstdint>
-#include <vector>
 #include "passdata.h"
-#include <iostream>
 #include "xtea.h"
 
 using namespace std;
 
-void openFile(string &key, vector<PassData> &passes) {
+int openFile(string &key, vector<PassData> &passes) {
 
     // Открываем файл в бинарном режиме
     string filename = "notPasswords.bin";
@@ -29,7 +25,7 @@ void openFile(string &key, vector<PassData> &passes) {
         // Проверяем, что размер файла кратен размеру uint32_t
         if (fileSize % sizeof(uint32_t) != 0) {
             cerr << "Размер файла не кратен" << endl;
-            return;
+            return -1;
         }
 
         // Создаем вектор нужного размера
@@ -37,55 +33,57 @@ void openFile(string &key, vector<PassData> &passes) {
 
         // Читаем данные в вектор
         if (fin.read(reinterpret_cast<char *>(buffer.data()), fileSize)) {
+            fin.close();
+            bool isValidKey = false;
+
             // Обрабатываем данные
+            vector<uint32_t> byteKey;
+            stringToVector(key, byteKey);
+            xtea_decrypt(buffer, byteKey);
             string str = vectorToString(buffer);
 
             //перевод строки в вектор структур
             string line;
             //прогоняем строчку
-            for (int i = 0, k = -2, j = 0; str[i] != '\0'; i++)  {
-                if(str[i] != '\n' && str[i] != ';') {
+            for (int i = 0, k = -2, j = 0; str[i] != '\0'; i++) {
+                if (str[i] != '\n' && str[i] != ';') {
                     line += str[i];
                 }
-                //считывание слов
-                else if (str[i] != ';'){
-                    if(k == -2) {
+                    //считывание слов
+                else if (str[i] == ';' || str[i] == '\n') {
+                    if (k == -2) {
                         //проверка ключа
-                        if (key != line) {
-                            cout << "Неверный ключ\n";
-                            return;
+                        if (key == line) {
+                            isValidKey = true;
                         }
                         line = "";
                         k++;
-                    }
-                    if(k == -1) {
-                        passes.resize(stoi(line));
+                    } else if (k == -1) {
+                        uint64_t size = stoull(line);
+                        passes.reserve(size + 20);
+                        passes.resize(size);
                         line = "";
                         k++;
                     }
-                    //переход на новую подстроку
+                        //переход на новую подстроку
                     else {
-                        if(k == 0) {
+                        if (k == 0) {
                             passes[j].login = line;
                             line = "";
                             //сдвиг счётчика слов в подстроке
                             k++;
-                        }
-                        else if(k == 1) {
+                        } else if (k == 1) {
                             passes[j].pass = line;
                             line = "";
                             //сдвиг счётчика слов в подстроке
                             k++;
-                        }
-                        else if(k == 2){
+                        } else if (k == 2) {
                             passes[j].service = line;
                             line = "";
                             //сдвиг счётчика слов в подстроке
                             k++;
-                        }
-                        else{
-                            int toInt  = stoi(line);
-                            passes[j].duration = static_cast<uint64_t>(toInt);
+                        } else {
+                            passes[j].duration = stoull(line);
                             line = "";
                             //обнуление счётчика слов в подстроке
                             k = 0;
@@ -95,20 +93,26 @@ void openFile(string &key, vector<PassData> &passes) {
                     }
                 }
             }
+            if (isValidKey)
+                return 0;
+            else
+                return 2;
         } else {
+            fin.close();
             cerr << "Ошибка при чтении файла" << endl;
+            return -1;
         }
     } else {
         //возвращаем пустой массив
         cerr << "Ошибка при чтении файла" << endl;
-        return;
+        return -1;
     }
-    fin.close();
 }
 
 // сохраняет файл
-void saveFile(const vector<PassData> &passes, const vector<uint32_t> &key) {
-    string keyStr = vectorToString(key);
+void saveFile(const vector<PassData> &passes, const string &keyStr) {
+    vector<uint32_t> key;
+    stringToVector(keyStr, key);
     string dataStr = keyStr + ';' + to_string(passes.size()) + '\n';
     for (const PassData &pass: passes) {
         dataStr += pass.login + ';' + pass.pass + ';' + pass.service + ';'

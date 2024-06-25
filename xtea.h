@@ -6,7 +6,6 @@
 #define PPASS_XTEA_H
 
 #include <cstdint>
-#include <iostream>
 #include <vector>
 
 using namespace std;
@@ -30,7 +29,7 @@ void xtea_encrypt(vector<uint32_t> &text, const vector<uint32_t> &key) {
     }
 }
 
-// дешифрует вектор беззнаковых 32-битных text чисел при помощи ключа key
+// дешифрует text вектор беззнаковых 32-битных чисел при помощи ключа key
 // key должен состоять из 4-х элементов
 // text должен состоять из кол-ва элементов кратного 2-ум
 void xtea_decrypt(vector<uint32_t> &text, const vector<uint32_t> &key) {
