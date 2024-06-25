@@ -16,6 +16,7 @@ int main() {
                   "-s - получить пароль по сервису\n"
                   "-l - получить пароль по логину\n\n"
                   "update_pass   - обновить пароль\n\n"
+                  "list_pass     - вывести список всех паролей\n\n"
                   "list_outdated - показать список паролей с истекшем сроком действия\n\n";
     vector<PassData> passes;
     string keyStr;
@@ -119,12 +120,12 @@ int main() {
                 cout << "Введите логин: ";
                 cin >> login;
 
-                for (int i = 0; i < passes.size(); i++) {
-                    PassData &pass = passes[i];
-
+                uint32_t cnt = 0;
+                for (auto & pass : passes) {
                     if (pass.login.contains(login)) {
+                        cnt++;
                         findings.push_back(pass);
-                        cout << "\t" << i + 1 << ". Логин: " << pass.login
+                        cout << "\t" << cnt << ". Логин: " << pass.login
                              << "\tСервис: " << pass.service << '\n';
                     }
                 }
@@ -149,12 +150,12 @@ int main() {
                 cout << "Введите название сервиса: ";
                 cin >> service;
 
-                for (int i = 0; i < passes.size(); i++) {
-                    PassData &pass = passes[i];
-
+                uint32_t cnt = 0;
+                for (const PassData &pass: passes) {
                     if (pass.service.contains(service)) {
+                        cnt++;
                         findings.push_back(pass);
-                        cout << "\t" << i + 1 << ". Логин: " << pass.login
+                        cout << "\t" << cnt << ". Логин: " << pass.login
                              << "\tСервис: " << pass.service << '\n';
                     }
                 }
@@ -219,6 +220,10 @@ int main() {
             if (!wasFound)
                 cout << "Учетной записи с таким логином и паролем не обнаружено\n";
 
+        } else if (command == "list_pass") {
+            for (const PassData &pass: passes) {
+                cout << "\tЛогин: " << pass.login << "\tСервис: " << pass.service << '\n';
+            }
         } else if (command == "list_outdated") {
             uint64_t timeNow = time(nullptr);
             bool wasFound = false;
@@ -226,8 +231,8 @@ int main() {
             for (const PassData &pass: passes) {
                 if (pass.timestamp + pass.duration <= timeNow) {
                     wasFound = true;
-                    cout << "Логин: " << pass.login << "\tСервис: " << pass.service
-                         << "\n\tБыл просрочен "
+                    cout << "\tЛогин: " << pass.login << "\tСервис: " << pass.service
+                         << "\n\t\tБыл просрочен "
                          << (timeNow - (pass.timestamp + pass.duration)) / 60 / 60 / 24
                          << " дней(день) назад\n";
                 }
