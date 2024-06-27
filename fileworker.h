@@ -82,6 +82,11 @@ int openFile(string &key, vector<PassData> &passes) {
                             line = "";
                             //сдвиг счётчика слов в подстроке
                             k++;
+                        } else if (k == 3) {
+                            passes[j].timestamp = stoull(line);
+                            line = "";
+                            //сдвиг счётчика слов в подстроке
+                            k++;
                         } else {
                             passes[j].duration = stoull(line);
                             line = "";
