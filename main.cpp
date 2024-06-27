@@ -13,9 +13,10 @@ int main() {
                   "help          - показать список возможных команд\n\n"
                   "create_pass   - записать новый пароль\n\n"
                   "get_pass      - получить пароль:\n"
-                  "-s - получить пароль по сервису\n"
-                  "-l - получить пароль по логину\n\n"
+                  "\t-s - получить пароль по сервису\n"
+                  "\t-l - получить пароль по логину\n\n"
                   "update_pass   - обновить пароль\n\n"
+                  "delete_pass   - удалить пароль\n\n"
                   "list_pass     - вывести список всех паролей\n\n"
                   "list_outdated - показать список паролей с истекшем сроком действия\n\n";
     vector<PassData> passes;
@@ -47,7 +48,7 @@ int main() {
     }
 
     while (command != "exit") {
-        cout << "Введите команду: ";
+        cout << "\nВведите команду: ";
         cin >> command;
         if (command == "help")
             cout << help;
@@ -121,7 +122,7 @@ int main() {
                 cin >> login;
 
                 uint32_t cnt = 0;
-                for (auto & pass : passes) {
+                for (auto &pass: passes) {
                     if (pass.login.contains(login)) {
                         cnt++;
                         findings.push_back(pass);
@@ -131,7 +132,7 @@ int main() {
                 }
 
                 uint32_t num;
-                cout << "Введите номер учетной записи пароль от которой вам нужен: ";
+                cout << "\nВведите номер учетной записи пароль от которой вам нужен: ";
                 cin >> num;
                 num--;
                 if (num >= findings.size())
@@ -161,7 +162,7 @@ int main() {
                 }
 
                 uint32_t num;
-                cout << "Введите номер учетной записи пароль от которой вам нужен: ";
+                cout << "\nВведите номер учетной записи пароль от которой вам нужен: ";
                 cin >> num;
                 num--;
                 if (num >= findings.size())
@@ -242,6 +243,27 @@ int main() {
 
         } else if (command == "exit") {
             saveFile(passes, keyStr);
+        } else if (command == "delete_pass") {
+            string login;
+            string service;
+
+            cout << "Введите логин: ";
+            cin >> login;
+
+            cout << "Введите название сервиса: ";
+            cin >> service;
+
+            bool wasFound = false;
+            for (auto i = passes.cbegin(); i < passes.end(); ++i) {
+                if (i->service == service && i->login == login) {
+                    wasFound = true;
+                    passes.erase(i);
+                    break;
+                }
+            }
+            if (!wasFound)
+                cout << "Учетной записи с такими логином и названием сервиса не обнаружено\n";
+
         } else
             cout << "Такой команды нет\n";
     }

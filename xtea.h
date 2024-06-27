@@ -10,7 +10,7 @@
 
 using namespace std;
 
-// шифрует вектор беззнаковых 32-битных text чисел при помощи ключа key
+// Шифрует вектор беззнаковых 32-битных чисел text при помощи ключа key
 // key должен состоять из 4-х элементов
 // text должен состоять из кол-ва элементов кратного 2-ум
 void xtea_encrypt(vector<uint32_t> &text, const vector<uint32_t> &key) {
@@ -29,7 +29,7 @@ void xtea_encrypt(vector<uint32_t> &text, const vector<uint32_t> &key) {
     }
 }
 
-// дешифрует text вектор беззнаковых 32-битных чисел при помощи ключа key
+// Дешифрует вектор беззнаковых 32-битных чисел text при помощи ключа key
 // key должен состоять из 4-х элементов
 // text должен состоять из кол-ва элементов кратного 2-ум
 void xtea_decrypt(vector<uint32_t> &text, const vector<uint32_t> &key) {
